@@ -18,8 +18,10 @@ resultFileName = 'Comparativa_Susana-finish'  # 保存结果的文档名
 # 加载参数文件：
 print("读取中。。。")
 
-# 可选西班牙csv预处理： , → .    ; → ,
-# 或使用pd.read_csv加入参数（delimiter=";", decimal=",")
+
+# 使用pd.read_csv需加入参数
+# 国内（delimiter=";", decimal=",")
+# 西班牙（delimiter=";"）
 
 # 加工预测数据文档
 data1 = pd.read_csv(predictFileName + '.csv', delimiter=";", encoding='utf-8')
@@ -177,6 +179,6 @@ xlsxDataCopy(108, 101, 8042, max_row + 1, -6624)
 wb3.save(resultFileName + '.xlsx')  # 保存数据
 print("写入完成")
 os.remove('somethingYouNeed.xlsx')
-os.remove('somethingYouNeedToo.xlsx')
+os.remove('somethingYouNeedToo.csv')
 wb1.close()  # 关闭excel
 wb3.close()
