@@ -18,7 +18,6 @@ resultFileName = 'Comparativa_Susana-finish'  # 保存结果的文档名
 # 加载参数文件：
 print("读取中。。。")
 
-
 # 使用pd.read_csv需加入参数
 # 国内（delimiter=";", decimal=",")
 # 西班牙（delimiter=";"）
@@ -37,7 +36,7 @@ with open(actualProductionCsvName, 'w') as csvfile:
     csv_head = ["year", "month", "day", "hour", "production"]
     csv_writer.writerow(csv_head)
 
-# data2读取模板csv
+# data2读取实际数据csv
 data2 = pd.read_csv(actualProductionCsvName, delimiter=";", encoding='utf-8')
 
 # 自动生成真实日期数字
@@ -83,10 +82,11 @@ for y in range(2019, 2021):
                 data_row = ["97"]
                 csv_writer.writerow(data_row)
 
-#
-# data2.to_excel('somethingYouNeedToo.xlsx', sheet_name='Production')
+
+data2.to_excel('somethingYouNeedToo.xlsx', sheet_name='Production')
 
 
+# 读取需要录入的表格
 wb1 = load_workbook('somethingYouNeed.xlsx')
 wb3 = load_workbook(writeFileName + '.xlsx')
 
@@ -180,5 +180,6 @@ wb3.save(resultFileName + '.xlsx')  # 保存数据
 print("写入完成")
 os.remove('somethingYouNeed.xlsx')
 os.remove('somethingYouNeedToo.csv')
+os.remove('somethingYouNeedToo.xlsx')
 wb1.close()  # 关闭excel
 wb3.close()
