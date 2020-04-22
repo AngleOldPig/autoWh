@@ -22,7 +22,7 @@ print("读取中。。。")
 # 或使用pd.read_csv加入参数（delimiter=";", decimal=",")
 
 # 加工预测数据文档
-data1 = pd.read_csv(predictFileName + '.csv', delimiter=";", decimal=",", encoding='utf-8')
+data1 = pd.read_csv(predictFileName + '.csv', delimiter=";", encoding='utf-8')
 data1["Production"] = data1["Production"] * 1000
 data1.to_excel('somethingYouNeed.xlsx', sheet_name='Prediction')
 
@@ -36,7 +36,7 @@ with open(actualProductionCsvName, 'w') as csvfile:
     csv_writer.writerow(csv_head)
 
 # data2读取模板csv
-data2 = pd.read_csv(actualProductionCsvName, delimiter=";", decimal=",", encoding='utf-8')
+data2 = pd.read_csv(actualProductionCsvName, delimiter=";", encoding='utf-8')
 
 # 自动生成真实日期数字
 for y in range(2019, 2021):
