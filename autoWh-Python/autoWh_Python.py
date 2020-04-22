@@ -7,19 +7,22 @@ import openpyxl
 import re
 
 # 需要填写的参数：
-# *** 注意 *** 不要填写后缀名
-predictFileName = 'cn_5934_muestras_todos_los_meses'  # 要读取的预测数据文档名
-actualFileName = 'cn_Balance_energético'  # 要读取的实际数据文档名
+# *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
+predictFileName = '5934_muestras_todos_los_meses'  # 要读取的预测数据文档名
+actualFileName = 'Balance_energético'  # 要读取的实际数据文档名
 writeFileName = 'Comparativa_Susana'  # 需要录入的表格名
 resultFileName = 'Comparativa_Susana-finish'  # 保存结果的文档名
-# *** 注意 *** 不要填写后缀名
+# *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
 
 
 # 加载参数文件：
 print("读取中。。。")
 
+# 可选西班牙csv预处理： , → .    ; → ,
+# 或使用pd.read_csv加入参数（delimiter=";", decimal=",")
+
 # 加工预测数据文档
-data1 = pd.read_csv(predictFileName + '.csv', encoding='utf-8')
+data1 = pd.read_csv(predictFileName + '.csv', delimiter=";", decimal=",", encoding='utf-8')
 data1["Production"] = data1["Production"] * 1000
 data1.to_excel('somethingYouNeed.xlsx', sheet_name='Prediction')
 
@@ -33,7 +36,7 @@ with open(actualProductionCsvName, 'w') as csvfile:
     csv_writer.writerow(csv_head)
 
 # data2读取模板csv
-data2 = pd.read_csv(actualProductionCsvName, encoding='utf-8')
+data2 = pd.read_csv(actualProductionCsvName, delimiter=";", decimal=",", encoding='utf-8')
 
 # 自动生成真实日期数字
 for y in range(2019, 2021):
@@ -174,6 +177,6 @@ xlsxDataCopy(108, 101, 8042, max_row + 1, -6624)
 wb3.save(resultFileName + '.xlsx')  # 保存数据
 print("写入完成")
 os.remove('somethingYouNeed.xlsx')
-# os.remove('somethingYouNeedToo.xlsx')
+os.remove('somethingYouNeedToo.xlsx')
 wb1.close()  # 关闭excel
 wb3.close()
