@@ -25,7 +25,7 @@ print("读取中。。。")
 
 
 # 加工预测数据文档
-data1 = pd.read_csv(predictFileName + '.csv', delimiter=";", decimal=",", thousands='.', encoding='utf-8')
+data1 = pd.read_csv(predictFileName + '.csv', delimiter=";", thousands='.', encoding='utf-8')
 data1["Production"] = data1["Production"] * 1000
 data1.to_excel('somethingYouNeed.xlsx', sheet_name='Prediction')
 
@@ -68,7 +68,7 @@ for y in range(2019, 2021):
                 # print(data2FileName + '文件不存在')
                 continue
             # 用暂存变量dataTemp读取生成文档名指向的csv文件
-            dataTemp = pd.read_csv(data2FileName, delimiter=";", decimal=",", thousands='.', encoding='utf-8', header=None, skiprows=1,
+            dataTemp = pd.read_csv(data2FileName, delimiter=";", thousands='.', encoding='utf-8', header=None, skiprows=1,
                                    usecols=[0, 8])
             # 去除数据中的. 防止数据被识别为小数
 
