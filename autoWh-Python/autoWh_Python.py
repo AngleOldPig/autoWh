@@ -95,6 +95,7 @@ for y in range(2019, 2021):
                     num[4] = num[4] / 4                             # 求它们的平均数
                     a = a + 1
                     dataTempList.append([y,m,d,a,num[4]])           # 将时间数据和每小时平均数添加进dataTempList列表
+            dataTempList.append([y,m,d,24,0])
 
             # 将 列表list 转换为 DataFrame格式
             data2TempDataFrame = pd.DataFrame(dataTempList)
