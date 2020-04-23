@@ -20,12 +20,12 @@ resultFileName = 'Comparativa_Susana-finish'  # 保存结果的文档名
 print("读取中。。。")
 
 # 使用pd.read_csv需加入参数
-# 国内（delimiter=";", decimal=",")
+# 国内（delimiter=";", decimal=",", thousands='.')
 # 西班牙（delimiter=";"）
 
 
 # 加工预测数据文档
-data1 = pd.read_csv(predictFileName + '.csv', delimiter=";", decimal=",", thousands='.', encoding='utf-8')
+data1 = pd.read_csv(predictFileName + '.csv', delimiter=";", encoding='utf-8')
 data1["Production"] = data1["Production"] * 1000
 data1.to_excel('somethingYouNeed.xlsx', sheet_name='Prediction')
 
@@ -68,7 +68,7 @@ for y in range(2019, 2021):
                 # print(data2FileName + '文件不存在')
                 continue
             # 用暂存变量dataTemp读取生成文档名指向的csv文件
-            dataTemp = pd.read_csv(data2FileName, delimiter=";", decimal=",", thousands='.', encoding='utf-8', header=None, skiprows=1,
+            dataTemp = pd.read_csv(data2FileName, delimiter=";", encoding='utf-8', header=None, skiprows=1,
                                    usecols=[0, 8])
             # 去除数据中的. 防止数据被识别为小数
 
@@ -87,10 +87,10 @@ for y in range(2019, 2021):
             # print(dataTemp)
 
             # 将文件中的实际值读取出并和平均值一起存入num数组
-            for i in range(0, 96):
+            for i in range(3, 96):
                 p = dataTemp[8][i]
-                num[i % 4] = float(p)                               # 读取每小时的4个数据单元格
-                if (i + 1) % 4 == 0:
+                num[(i+1) % 4] = float(p)                               # 读取每小时的4个数据单元格
+                if (i + 1) % 4 == 3:
                     num[4] = num[0] + num[1] + num[2] + num[3]
                     num[4] = num[4] / 4                             # 求它们的平均数
                     a = a + 1
@@ -133,8 +133,8 @@ for y in range(2019, 2021):
 
 # data2读取实际数据csv
 data2 = pd.read_csv(actualProductionCsvName, encoding='utf-8')
-data2.to_excel('somethingYouNeedToo.xlsx', sheet_name='Production')
-data2.to_excel(actualFileName+'-actualProduction.xlsx', sheet_name='Production')
+data2.to_excel('somethingYouNeedToo.xlsx', sheet_name='Production', index=None)
+data2.to_excel(actualFileName+'-actualProduction.xlsx', sheet_name='Production', index=None)
 
 # 读取需要录入的表格
 wb1 = load_workbook('somethingYouNeed.xlsx')
