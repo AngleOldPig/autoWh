@@ -23,7 +23,7 @@ resultFileName = 'Comparativa_Susana-finish'        # 保存结果的文档名
 # 加载参数文件：
 print("读取中。。。")
 
-# 使用pd.read_csv需加入参数
+# 使用pd.read_csv需手动加入参数
 # 国内（delimiter=";", decimal=",", thousands='.')
 # 西班牙（delimiter=";"）
 
@@ -114,33 +114,6 @@ if actualFileMode == 1:
                 # 将时间信息与每小时平均数一并存入csv文件：
                 data2TempDataFrame.to_csv(actualProductionCsvName, mode='a', header=False, index=None)
 
-                '''
-                # 使用官方csv库尝试失败
-                # dataTemp = pd.read_csv(data2FileName, delimiter=";", decimal=",", encoding='utf-8', header=None)
-                # 计算每日平均数并存入csv文件N列
-                # a = 1
-                # m = 0
-                # num = [0.0, 0.0, 0.0, 0.0, 0.0]
-                # with open(data2FileName, encoding='utf-8') as dataTemp:
-                #     # ignore = dataTemp.readline()                            #忽略标题行
-                #     for line in csv.DictReader(dataTemp):
-                #         num[m] = float(line['Generación fotovoltaica / Promedios [W]  '])
-                #         if a % 4 == 0:
-                #             num[4] = num[0]+num[1]+num[2]+num[3]
-                #             num[4] = num[4]/4
-                #             print(line)
-                #             m = -1
-                #         a = a + 1
-                #         m = m + 1
-                '''
-
-                # 将年月日小时数据分别放在J,K,L,M列
-                # 将年月日小时和平均数5列占据的所有行附加到data2现有数据下面
-                # with open(actualProductionCsvName, 'a+') as csvfile:
-                #     csv_writer = csv.writer(csvfile)
-                #     data_row = ["test"]
-                #     csv_writer.writerow(data_row)
-
 
 # 模式2. 数据存放在第2列，时间命名用yyyy-mm-dd表示，数据大小×1000
 if actualFileMode == 2:
@@ -213,32 +186,6 @@ if actualFileMode == 2:
                 # 将时间信息与每小时平均数一并存入csv文件：
                 data2TempDataFrame.to_csv(actualProductionCsvName, mode='a', header=False, index=None)
 
-                '''
-                # 使用官方csv库尝试失败
-                # dataTemp = pd.read_csv(data2FileName, delimiter=";", decimal=",", encoding='utf-8', header=None)
-                # 计算每日平均数并存入csv文件N列
-                # a = 1
-                # m = 0
-                # num = [0.0, 0.0, 0.0, 0.0, 0.0]
-                # with open(data2FileName, encoding='utf-8') as dataTemp:
-                #     # ignore = dataTemp.readline()                            #忽略标题行
-                #     for line in csv.DictReader(dataTemp):
-                #         num[m] = float(line['Generación fotovoltaica / Promedios [W]  '])
-                #         if a % 4 == 0:
-                #             num[4] = num[0]+num[1]+num[2]+num[3]
-                #             num[4] = num[4]/4
-                #             print(line)
-                #             m = -1
-                #         a = a + 1
-                #         m = m + 1
-                '''
-
-                # 将年月日小时数据分别放在J,K,L,M列
-                # 将年月日小时和平均数5列占据的所有行附加到data2现有数据下面
-                # with open(actualProductionCsvName, 'a+') as csvfile:
-                #     csv_writer = csv.writer(csvfile)
-                #     data_row = ["test"]
-                #     csv_writer.writerow(data_row)
 
 # data2读取实际数据csv
 data2 = pd.read_csv(actualProductionCsvName, encoding='utf-8')
@@ -265,7 +212,11 @@ max_column = sheet3.max_column  # 最大列数
 
 # 构建数据填写函数
 # 用法：
-#
+# columnRead：指定读取文档中的具体列标号
+# columnWrite：指定写入文档中的具体列标号
+# rowWriteStart：开始写入的行标号
+# rowWriteStop：停止写入的行标号
+# rowReadFixed：读取与写入行之间的差值
 def xlsxDataCopy(columnRead, columnWrite, rowWriteStart, rowWriteStop, rowReadFixed):
     "根据行列编号复制单元格内容"
     for m in range(rowWriteStart, rowWriteStop):
@@ -291,6 +242,17 @@ xlsxDataCopy(108, 101, 8042, max_row + 1, -6624)
 # 写入实际数据
 
 
+# 完成收尾工作
+wb3.save(resultFileName + '.xlsx')  # 保存数据
+print("写入完成")
+os.remove('somethingYouNeed.xlsx')
+os.remove('somethingYouNeedToo.csv')
+os.remove('somethingYouNeedToo.xlsx')
+wb1.close()  # 关闭excel
+wb3.close()
+
+
+# 一些旧代码：
 # 写入预测数据旧代码，现已使用函数代替
 # # 填写4-1到12-31数据
 # print("写入中。。。")
@@ -337,12 +299,3 @@ xlsxDataCopy(108, 101, 8042, max_row + 1, -6624)
 #     cell1 = sheet1[i].value  # 获取data单元格数据
 #     sheet2[j].value = cell1  # 赋值到test单元格
 
-
-# 完成收尾工作
-wb3.save(resultFileName + '.xlsx')  # 保存数据
-print("写入完成")
-os.remove('somethingYouNeed.xlsx')
-os.remove('somethingYouNeedToo.csv')
-os.remove('somethingYouNeedToo.xlsx')
-wb1.close()  # 关闭excel
-wb3.close()
