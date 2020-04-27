@@ -170,9 +170,9 @@ if actualFileMode == 2:
                         print('已读取' + data2FileName)
                     else:
                         continue
-                # 用暂存变量dataTemp读取生成文档名指向的csv文件
+                # 用暂存变量data2Temp读取生成文档名指向的csv文件
                 data2Temp = pd.read_csv(data2FileName,
-                                        delimiter=";", decimal=",", thousands='.',  # 在国内使用需手动切换国内格式
+                                        delimiter=";", decimal=",", thousands='.',  
                                         encoding='utf-8', header=None, skiprows=1, usecols=[0, actualReadCsvColumn])
                 # 去除数据中的. 防止数据被识别为小数
                 # 用0替换DataFrame对象中所有的空值
