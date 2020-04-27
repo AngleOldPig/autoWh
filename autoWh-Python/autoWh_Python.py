@@ -11,8 +11,8 @@ np.set_printoptions(threshold=np.inf)
 # 需要填写的参数：
 # *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
 predictFileName = '5934_muestras_todos_los_meses'  # 要读取的预测数据文档名
-actualFileName = 'semana'  # 要读取的实际数据文档名
-actualFileMode = 3  # 实际数据读取模式
+actualFileName = 'Energía_y_potencia_Día'  # 要读取的实际数据文档名
+actualFileMode = 2  # 实际数据读取模式
 actualReadColumn = 2  # 实际数据读取的列标号，模式3选择整数部分的列标号
 writeFileName = 'Comparativa_Susana'  # 需要录入的表格名
 resultFileName = 'Comparativa_Susana-finish'  # 保存结果的文档名# *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
@@ -78,8 +78,19 @@ if actualFileMode == 1:
                         print(data2FileName + '文件存在但为空')
                         continue
                 else:
-                    # print(data2FileName + '文件不存在')
-                    continue
+                    for ind in range(1, 10):
+                        data2IndexFileName = actualFileName + '_' + year + '_' + month + '_' + day + ' (' + str(
+                            ind) + ')' + '.csv'
+                        if os.path.exists(data2IndexFileName):
+                            if os.path.getsize(data2IndexFileName):
+                                data2FileName = data2IndexFileName
+                        else:
+                            continue
+                    if os.path.exists(data2FileName):
+                        print('已读取' + data2FileName)
+                    else:
+                        continue
+
                 # 用暂存变量dataTemp读取生成文档名指向的csv文件
                 data2Temp = pd.read_csv(data2FileName, delimiter=";", decimal=",", thousands='.',
                                         encoding='utf-8', header=None, skiprows=1, usecols=[0, actualReadCsvColumn])
@@ -147,8 +158,18 @@ if actualFileMode == 2:
                         print(data2FileName + '文件存在但为空')
                         continue
                 else:
-                    # print(data2FileName + '文件不存在')
-                    continue
+                    for ind in range(1, 10):
+                        data2IndexFileName = actualFileName + '_' + year + '-' + month + '-' + day + ' (' + str(
+                            ind) + ')' + '.csv'
+                        if os.path.exists(data2IndexFileName):
+                            if os.path.getsize(data2IndexFileName):
+                                data2FileName = data2IndexFileName
+                        else:
+                            continue
+                    if os.path.exists(data2FileName):
+                        print('已读取' + data2FileName)
+                    else:
+                        continue
                 # 用暂存变量dataTemp读取生成文档名指向的csv文件
                 data2Temp = pd.read_csv(data2FileName,
                                         delimiter=";", decimal=",", thousands='.',  # 在国内使用需手动切换国内格式
