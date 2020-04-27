@@ -33,7 +33,7 @@ print("读取中。。。")
 
 # 加工预测数据文档
 data1 = pd.read_csv(predictFileName + '.csv',
-                    delimiter=";", decimal=",", thousands='.',
+                    delimiter=";",
                     encoding='utf-8')  # 在国内使用需手动切换国内格式
 data1["Production"] = data1["Production"] * 1000
 data1.to_excel('somethingYouNeed.xlsx', sheet_name='Prediction')
