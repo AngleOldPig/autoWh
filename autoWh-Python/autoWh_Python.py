@@ -5,31 +5,36 @@ import os
 import openpyxl
 import re
 import numpy as np
+
 np.set_printoptions(threshold=np.inf)
 
 # 需要填写的参数：
 # *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
-predictFileName = '5934_muestras_todos_los_meses'   # 要读取的预测数据文档名
-actualFileName = 'Energía_y_potencia_Día'           # 要读取的实际数据文档名
-actualFileMode = 2                                  # 实际数据读取模式
-writeFileName = 'Comparativa_Susana'                # 需要录入的表格名
-resultFileName = 'Comparativa_Susana-finish'        # 保存结果的文档名
+predictFileName = '5934_muestras_todos_los_meses'  # 要读取的预测数据文档名
+actualFileName = 'semana'  # 要读取的实际数据文档名
+actualFileMode = 3  # 实际数据读取模式
+actualReadColumn = 2  # 实际数据读取的列标号，模式3选择整数部分的列标号
+writeFileName = 'Comparativa_Susana'  # 需要录入的表格名
+resultFileName = 'Comparativa_Susana-finish'  # 保存结果的文档名# *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
 # *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
 # 实际数据读取模式：
-# 模式1. 数据存放在第8列，时间命名用yyyy_mm_dd表示
-# 模式2. 数据存放在第2列，时间命名用yyyy-mm-dd表示，数据大小×1000
+# 模式1. 时间命名用yyyy_mm_dd表示，每日一个文件
+# 模式2. 时间命名用yyyy-mm-dd表示，每日一个文件，数据大小自动×1000
+# 模式3. 文件命名用1、2、3。。。表示，每周一个文件
 
 
 # 加载参数文件：
 print("读取中。。。")
 
-# 使用pd.read_csv需手动加入参数
-# 国内（delimiter=";", decimal=",", thousands='.')
-# 西班牙（delimiter=";"）
+# 使用pd.read_csv需手动在36行更改读取参数，注意保存左侧对齐
+# 国内（delimiter=";", decimal=",", thousands='.',)
+# 西班牙（delimiter=";",）
 
 
 # 加工预测数据文档
-data1 = pd.read_csv(predictFileName + '.csv', delimiter=";", encoding='utf-8')  # 在国内使用需手动切换国内格式
+data1 = pd.read_csv(predictFileName + '.csv',
+                    delimiter=";", decimal=",", thousands='.',
+                    encoding='utf-8')  # 在国内使用需手动切换国内格式
 data1["Production"] = data1["Production"] * 1000
 data1.to_excel('somethingYouNeed.xlsx', sheet_name='Prediction')
 
@@ -37,6 +42,7 @@ data1.to_excel('somethingYouNeed.xlsx', sheet_name='Prediction')
 
 # 生成空模板csv文档，并添加年、月、日、小时、每日产电量，5列标题
 actualProductionCsvName = "somethingYouNeedToo.csv"
+actualReadCsvColumn = actualReadColumn - 1
 with open(actualProductionCsvName, 'w') as csvfile:
     csv_writer = csv.writer(csvfile)
     csv_head = ["year", "month", "day", "hour", "production"]
@@ -44,8 +50,7 @@ with open(actualProductionCsvName, 'w') as csvfile:
 
 # 自动生成真实日期数字，区分模式1和模式2
 
-
-# 模式1. 数据存放在第8列，时间命名用yyyy_mm_dd表示
+# 模式1. 时间命名用yyyy_mm_dd表示
 if actualFileMode == 1:
     for y in range(2019, 2021):
         for m in range(1, 13):
@@ -76,13 +81,13 @@ if actualFileMode == 1:
                     # print(data2FileName + '文件不存在')
                     continue
                 # 用暂存变量dataTemp读取生成文档名指向的csv文件
-                dataTemp = pd.read_csv(data2FileName,
-                                       delimiter=";",       # 在国内使用需手动切换国内格式
-                                       encoding='utf-8', header=None, skiprows=1, usecols=[0, 8])
+                data2Temp = pd.read_csv(data2FileName, delimiter=";", decimal=",", thousands='.',
+                                        encoding='utf-8', header=None, skiprows=1, usecols=[0, actualReadCsvColumn])
                 # 去除数据中的. 防止数据被识别为小数
-
+                # 用0替换DataFrame对象中所有的空值
+                data2Temp = data2Temp.fillna(0)
                 # 准备参数
-                dataTempList = []
+                data2TempList = []
                 a = 0
                 h = 0
                 num = [0.0, 0.0, 0.0, 0.0, 0.0]
@@ -97,25 +102,24 @@ if actualFileMode == 1:
 
                 # 将文件中的实际值读取出并和平均值一起存入num数组
                 for i in range(3, 96):
-                    p = dataTemp[8][i]
-                    num[(i+1) % 4] = float(p)                               # 读取每小时的4个数据单元格
+                    p = data2Temp[actualReadCsvColumn][i]
+                    num[(i + 1) % 4] = float(p)  # 读取每小时的4个数据单元格
                     if (i + 1) % 4 == 3:
                         num[4] = num[0] + num[1] + num[2] + num[3]
-                        num[4] = num[4] / 4                             # 求它们的平均数
+                        num[4] = num[4] / 4  # 求它们的平均数
                         a = a + 1
-                        dataTempList.append([y,m,d,a,num[4]])           # 将时间数据和每小时平均数添加进dataTempList列表
-                dataTempList.append([y,m,d,24,0])
+                        data2TempList.append([y, m, d, a, num[4]])  # 将时间数据和每小时平均数添加进dataTempList列表
+                data2TempList.append([y, m, d, 24, 0])
 
                 # 将 列表list 转换为 DataFrame格式
-                data2TempDataFrame = pd.DataFrame(dataTempList)
+                data2TempDataFrame = pd.DataFrame(data2TempList)
                 # print('表格雏形：')
                 # print(data2TempDataFrame)
 
                 # 将时间信息与每小时平均数一并存入csv文件：
                 data2TempDataFrame.to_csv(actualProductionCsvName, mode='a', header=False, index=None)
 
-
-# 模式2. 数据存放在第2列，时间命名用yyyy-mm-dd表示，数据大小×1000
+# 模式2. 时间命名用yyyy-mm-dd表示，数据大小×1000
 if actualFileMode == 2:
     for y in range(2019, 2021):
         for m in range(1, 13):
@@ -146,13 +150,14 @@ if actualFileMode == 2:
                     # print(data2FileName + '文件不存在')
                     continue
                 # 用暂存变量dataTemp读取生成文档名指向的csv文件
-                dataTemp = pd.read_csv(data2FileName,
-                                       delimiter=";",       # 在国内使用需手动切换国内格式
-                                       encoding='utf-8', header=None, skiprows=1, usecols=[0, 1])
+                data2Temp = pd.read_csv(data2FileName,
+                                        delimiter=";", decimal=",", thousands='.',  # 在国内使用需手动切换国内格式
+                                        encoding='utf-8', header=None, skiprows=1, usecols=[0, actualReadCsvColumn])
                 # 去除数据中的. 防止数据被识别为小数
-
+                # 用0替换DataFrame对象中所有的空值
+                data2Temp = data2Temp.fillna(0)
                 # 准备参数
-                dataTempList = []
+                data2TempList = []
                 a = 0
                 h = 0
                 num = [0.0, 0.0, 0.0, 0.0, 0.0]
@@ -167,31 +172,106 @@ if actualFileMode == 2:
 
                 # 将文件中的实际值读取出并和平均值一起存入num数组
                 for i in range(3, 96):
-                    p = dataTemp[1][i]
+                    p = data2Temp[actualReadCsvColumn][i]
                     num[(i + 1) % 4] = float(p)  # 读取每小时的4个数据单元格
                     if (i + 1) % 4 == 3:
                         num[4] = num[0] + num[1] + num[2] + num[3]
                         num[4] = num[4] / 4  # 求它们的平均数
                         num[4] = num[4] * 1000  # 数值扩大1000倍
                         a = a + 1
-                        dataTempList.append([y, m, d, a, num[4]])  # 将时间数据和每小时平均数添加进dataTempList列表
-                dataTempList.append([y, m, d, 24, 0])
+                        data2TempList.append([y, m, d, a, num[4]])  # 将时间数据和每小时平均数添加进dataTempList列表
+                data2TempList.append([y, m, d, 24, 0])
 
                 # 将 列表list 转换为 DataFrame格式
-                data2TempDataFrame = pd.DataFrame(dataTempList)
-                data2TempDataFrame = data2TempDataFrame.fillna(0)      # 用0替换DataFrame对象中所有的空值
+                data2TempDataFrame = pd.DataFrame(data2TempList)
+                data2TempDataFrame = data2TempDataFrame.fillna(0)  # 用0替换DataFrame对象中所有的空值
                 # print('表格雏形：')
                 # print(data2TempDataFrame)
 
                 # 将时间信息与每小时平均数一并存入csv文件：
                 data2TempDataFrame.to_csv(actualProductionCsvName, mode='a', header=False, index=None)
 
+# 模式3. 文件命名用1、2、3。。。表示
+if actualFileMode == 3:
+    for n in range(0, 53):
+        # 组合生成文件名
+        data2FileName = actualFileName + str(n) + '.csv'
+        # 判断当前名称的文件是否存在
+        if os.path.exists(data2FileName):
+            if os.path.getsize(data2FileName):
+                print('已读取' + data2FileName)
+            else:
+                print(data2FileName + '文件存在但为空')
+                continue
+        else:
+            # print(data2FileName + '文件不存在')
+            continue
+
+        # 用暂存变量dataTemp读取生成文档名指向的csv文件
+        # , usecols=[0, actualReadCsvColumn, actualReadColumn]
+        data2Temp = pd.read_csv(data2FileName, encoding='utf-8', header=None)
+        # 添加空白列以防止读取报错
+        if data2Temp.shape[1] < 3:
+            data2Temp[2] = 0
+        # 用0替换DataFrame对象中所有的空值
+        data2Temp = data2Temp.fillna(0)
+        # 去除数据中的--并换成0
+        data2Temp = data2Temp.replace('--', 0)
+        # 准备参数
+        data2TempList = []
+        a = ''
+        y = ''
+        m = ''
+        d = ''
+        h = ''
+        p = 0.0
+        q = 0.0
+        num = [0.0, 0.0, 0.0]
+
+        # 调试用的信息
+        # print('表格模板：')
+        # print(dataTempList)
+        # print('选取项：')
+        # print(dataTemp[0][3])
+        print('所有项：')
+        print(data2Temp)
+
+        # 将文件中的实际值读取出并存入num数组
+        for i in range(5, 173):
+            if (i + 19) % 24 == 0:
+                data2TempList.append([y, m, d, 24, 0])
+                continue
+            p = data2Temp[actualReadCsvColumn][i]
+            q = data2Temp[actualReadColumn][i]
+            # 读取时间
+            a = data2Temp[0][i]
+            y = a[0:4]
+            m = a[5:7]
+            d = a[8:10]
+            h = a[11:13]
+            # 读取数据
+            num[0] = float(p)
+            num[1] = float(q)
+            num[2] = num[0] + (num[1]/100)
+            data2TempList.append([y, m, d, h, num[2]])  # 将时间数据和每小时平均数添加进dataTempList列表
+        data2TempList.append([y, m, d, 24, 0])
+
+        # 将 列表list 转换为 DataFrame格式
+        data2TempDataFrame = pd.DataFrame(data2TempList)
+        # print('表格雏形：')
+        # print(data2TempDataFrame)
+
+        # 将时间信息与每小时平均数一并存入csv文件：
+        data2TempDataFrame.to_csv(actualProductionCsvName, mode='a', header=False, index=None)
 
 # data2读取实际数据csv
-data2 = pd.read_csv(actualProductionCsvName, encoding='utf-8')
-data2 = data2.round(decimals=2)         # 表格数据只保留两位小数
+if actualFileMode == 3:
+    data2 = pd.read_csv(actualProductionCsvName, encoding='utf-8', skiprows=[2])
+else:
+    data2 = pd.read_csv(actualProductionCsvName, encoding='utf-8')
+data2 = data2.round(decimals=2)  # 表格数据只保留两位小数
 data2.to_excel('somethingYouNeedToo.xlsx', sheet_name='Production', index=None)
-data2.to_excel(actualFileName+'-actualProduction.xlsx', sheet_name='Production', index=None)
+data2.to_excel(actualFileName + '-actualProduction.xlsx', sheet_name='Production', index=None)
 
 # 读取需要录入的表格
 wb1 = load_workbook('somethingYouNeed.xlsx')
@@ -251,7 +331,6 @@ os.remove('somethingYouNeedToo.xlsx')
 wb1.close()  # 关闭excel
 wb3.close()
 
-
 # 一些旧代码：
 # 写入预测数据旧代码，现已使用函数代替
 # # 填写4-1到12-31数据
@@ -298,4 +377,3 @@ wb3.close()
 #     j = '%s%d' % (n, m)  # 写入单元格编号
 #     cell1 = sheet1[i].value  # 获取data单元格数据
 #     sheet2[j].value = cell1  # 赋值到test单元格
-
