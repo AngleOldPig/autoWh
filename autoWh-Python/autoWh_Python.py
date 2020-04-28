@@ -13,8 +13,8 @@ np.set_printoptions(threshold=np.inf)
 predictFileName = '5934_muestras_todos_los_meses'  # 要读取的预测数据文档名
 predictReadColumn = 'k'     # 预测数据读取列名(仅支持小写)
 predictFileReadMode = 1     # 填1或者2，玄学选项，若导出乱码则尝试另一个模式
-actualFileName = 'Energía_y_potencia_Día'  # 要读取的实际数据文档名
-actualFileMode = 2  # 实际数据读取模式
+actualFileName = 'semana'  # 要读取的实际数据文档名
+actualFileMode = 3  # 实际数据读取模式
 actualReadColumn = 2  # 实际数据读取的列名，模式3选择整数部分的列名
 writeFileName = 'Comparativa_Susana'  # 需要录入的表格名
 resultFileName = 'Comparativa_Susana-finish'  # 保存结果的文档名# *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
@@ -267,8 +267,8 @@ if actualFileMode == 3:
         # print(dataTempList)
         # print('选取项：')
         # print(dataTemp[0][3])
-        print('所有项：')
-        print(data2Temp)
+        # print('所有项：')
+        # print(data2Temp)
 
         # 将文件中的实际值读取出并存入num数组
         for i in range(5, 173):
@@ -285,6 +285,7 @@ if actualFileMode == 3:
             m = a[5:7]
             d = a[8:10]
             h = a[11:13]
+            h = h.replace(':', '')
             # 读取数据
             num[0] = float(p)
             num[1] = float(q)
