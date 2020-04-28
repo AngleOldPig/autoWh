@@ -11,9 +11,11 @@ np.set_printoptions(threshold=np.inf)
 # 需要填写的参数：
 # *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
 predictFileName = '5934_muestras_todos_los_meses'  # 要读取的预测数据文档名
+predictReadColumn = 'k'     # 预测数据读取列名(仅支持小写)
+predictFileReadMode = 1     # 填1或者2，玄学选项，若导出乱码则尝试另一个模式
 actualFileName = 'Energía_y_potencia_Día'  # 要读取的实际数据文档名
 actualFileMode = 2  # 实际数据读取模式
-actualReadColumn = 2  # 实际数据读取的列标号，模式3选择整数部分的列标号
+actualReadColumn = 2  # 实际数据读取的列名，模式3选择整数部分的列名
 writeFileName = 'Comparativa_Susana'  # 需要录入的表格名
 resultFileName = 'Comparativa_Susana-finish'  # 保存结果的文档名# *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
 # *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
@@ -30,19 +32,30 @@ print("读取中。。。")
 # 国内（delimiter=";", decimal=",", thousands='.',)
 # 西班牙（delimiter=";",）
 
+# 预测数据参数
+predictReadColumnAscii = ord(predictReadColumn)
+predictReadColumnAscii = predictReadColumnAscii + 1
+# print(predictReadColumnAscii)
 
 # 加工预测数据文档
-data1 = pd.read_csv(predictFileName + '.csv',
-                    delimiter=";",
-                    encoding='utf-8')  # 在国内使用需手动切换国内格式
+if predictFileReadMode == 1:
+    data1 = pd.read_csv(predictFileName + '.csv',
+                        delimiter=";",
+                        encoding='utf-8')  # 在国内使用需手动切换国内格式
+if predictFileReadMode == 2:
+    data1 = pd.read_csv(predictFileName + '.csv',
+                        delimiter=";", decimal=",", thousands='.',
+                        encoding='utf-8')  # 在国内使用需手动切换国内格式
+
 data1["Production"] = data1["Production"] * 1000
 data1.to_excel('somethingYouNeed.xlsx', sheet_name='Prediction')
 
+# 实际数据参数
+actualProductionCsvName = "somethingYouNeedToo.csv"
+actualReadCsvColumn = actualReadColumn - 1
 # 加工实际数据文档：
 
 # 生成空模板csv文档，并添加年、月、日、小时、每日产电量，5列标题
-actualProductionCsvName = "somethingYouNeedToo.csv"
-actualReadCsvColumn = actualReadColumn - 1
 with open(actualProductionCsvName, 'w') as csvfile:
     csv_writer = csv.writer(csvfile)
     csv_head = ["year", "month", "day", "hour", "production"]
@@ -259,7 +272,9 @@ if actualFileMode == 3:
 
         # 将文件中的实际值读取出并存入num数组
         for i in range(5, 173):
-            if (i + 19) % 24 == 0:
+            if i == 5:
+                continue
+            if (i - 5) % 24 == 0:
                 data2TempList.append([y, m, d, 24, 0])
                 continue
             p = data2Temp[actualReadCsvColumn][i]
@@ -286,10 +301,11 @@ if actualFileMode == 3:
         data2TempDataFrame.to_csv(actualProductionCsvName, mode='a', header=False, index=None)
 
 # data2读取实际数据csv
-if actualFileMode == 3:
-    data2 = pd.read_csv(actualProductionCsvName, encoding='utf-8', skiprows=[2])
-else:
-    data2 = pd.read_csv(actualProductionCsvName, encoding='utf-8')
+# if actualFileMode == 3:
+#     data2 = pd.read_csv(actualProductionCsvName, encoding='utf-8', skiprows=[2])
+# else:
+#     data2 = pd.read_csv(actualProductionCsvName, encoding='utf-8')
+data2 = pd.read_csv(actualProductionCsvName, encoding='utf-8')
 data2 = data2.round(decimals=2)  # 表格数据只保留两位小数
 data2.to_excel('somethingYouNeedToo.xlsx', sheet_name='Production', index=None)
 data2.to_excel(actualFileName + '-actualProduction.xlsx', sheet_name='Production', index=None)
@@ -335,10 +351,10 @@ def xlsxDataCopy(columnRead, columnWrite, rowWriteStart, rowWriteStop, rowReadFi
 print("写入中。。。")
 
 # 写入预测数据
-xlsxDataCopy(108, 101, 2, max_row + 1 - 2160, 2160)
-xlsxDataCopy(108, 101, 6602, 8018, -6600)
-xlsxDataCopy(108, 101, 8018, 8042, -6624)
-xlsxDataCopy(108, 101, 8042, max_row + 1, -6624)
+xlsxDataCopy(predictReadColumnAscii, 101, 2, max_row + 1 - 2160, 2160)
+xlsxDataCopy(predictReadColumnAscii, 101, 6602, 8018, -6600)
+xlsxDataCopy(predictReadColumnAscii, 101, 8018, 8042, -6624)
+xlsxDataCopy(predictReadColumnAscii, 101, 8042, max_row + 1, -6624)
 
 # 写入实际数据
 
