@@ -11,11 +11,11 @@ np.set_printoptions(threshold=np.inf)
 # 需要填写的参数：
 # *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
 predictFileName = '5934_muestras_todos_los_meses'  # 要读取的预测数据文档名
-predictReadColumn = 'k'     # 预测数据读取列名(仅支持小写)
-predictFileReadMode = 2     # 填1：短参数 或者 2：长参数，玄学选项，若导出乱码则尝试另一个模式
-actualFileName = 'download'  # 要读取的实际数据文档名
-actualFileMode = 3  # 实际数据读取模式
-actualReadColumn = 2  # 实际数据读取的列名，模式4选择整数部分的列名
+predictReadColumn = 'k'  # 预测数据读取列名(仅支持小写)
+predictFileReadMode = 2  # 填1：短参数 或者 2：长参数，玄学选项，若导出乱码则尝试另一个模式
+actualFileName = 'tableExport'  # 要读取的实际数据文档名
+actualFileMode = 5  # 实际数据读取模式
+actualReadColumn = 3  # 实际数据读取的列名，模式4选择整数部分的列名
 writeFileName = 'Comparativa_Susana'  # 需要录入的表格名
 resultFileName = 'Comparativa_Susana-finish'  # 保存结果的文档名# *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
 # *** 注意 *** 不要填写后缀名，也不要填写文件名的日期部分
@@ -24,6 +24,7 @@ resultFileName = 'Comparativa_Susana-finish'  # 保存结果的文档名# *** �
 # 模式2. 时间命名用yyyy-mm-dd表示，每日一个文件，数据大小自动×1000
 # 模式3. 文件命名用(1)、(2)、(3)。。。表示，每周一个文件
 # 模式4. 文件命名用1、2、3。。。表示，每周一个文件
+# 模式5. 文件命名用(1)、(2)、(3)。。。表示，每天一个文件，每小时5行
 
 
 # 加载参数文件：
@@ -63,6 +64,16 @@ with open(actualProductionCsvName, 'w') as csvfile:
     csv_writer.writerow(csv_head)
 
 # 自动生成真实日期数字，区分模式1和模式2
+
+
+# 日期数据分离
+def DateSplit(df, col):
+    temp_df = df[col].str.split('/', expand=True)   # 设置分隔符
+    temp_df.columns = ["day", "month", "year"]      # 设置年月日读取顺序
+    df = pd.concat([df, temp_df], axis=1)           # 将年月日三列并入到最右
+    # df = df.drop(col, axis=1)                     # 删除原有列
+    return df
+
 
 # 模式1. 时间命名用yyyy_mm_dd表示
 if actualFileMode == 1:
@@ -123,7 +134,7 @@ if actualFileMode == 1:
                 # print('选取项：')
                 # print(dataTemp[0][3])
                 # print('所有项：')
-                # print(dataTemp)
+                # print(data2Temp)
 
                 # 将文件中的实际值读取出并和平均值一起存入num数组
                 for i in range(3, 96):
@@ -186,7 +197,7 @@ if actualFileMode == 2:
                         continue
                 # 用暂存变量data2Temp读取生成文档名指向的csv文件
                 data2Temp = pd.read_csv(data2FileName,
-                                        delimiter=";", decimal=",", thousands='.',  
+                                        delimiter=";", decimal=",", thousands='.',
                                         encoding='utf-8', header=None, skiprows=1, usecols=[0, actualReadCsvColumn])
                 # 去除数据中的. 防止数据被识别为小数
                 # 用0替换DataFrame对象中所有的空值
@@ -293,7 +304,7 @@ if actualFileMode == 3:
             # 读取数据
             num[0] = float(p)
             num[1] = float(q)
-            num[2] = num[0] + (num[1]/100)
+            num[2] = num[0] + (num[1] / 100)
             data2TempList.append([y, m, d, h, num[2]])  # 将时间数据和每小时平均数添加进dataTempList列表
         data2TempList.append([y, m, d, 24, 0])
 
@@ -304,7 +315,6 @@ if actualFileMode == 3:
 
         # 将时间信息与每小时平均数一并存入csv文件：
         data2TempDataFrame.to_csv(actualProductionCsvName, mode='a', header=False, index=None)
-
 
 # 模式4. 文件命名用1、2、3。。。表示
 if actualFileMode == 4:
@@ -370,7 +380,7 @@ if actualFileMode == 4:
             # 读取数据
             num[0] = float(p)
             num[1] = float(q)
-            num[2] = num[0] + (num[1]/100)
+            num[2] = num[0] + (num[1] / 100)
             data2TempList.append([y, m, d, h, num[2]])  # 将时间数据和每小时平均数添加进dataTempList列表
         data2TempList.append([y, m, d, 24, 0])
 
@@ -381,6 +391,78 @@ if actualFileMode == 4:
 
         # 将时间信息与每小时平均数一并存入csv文件：
         data2TempDataFrame.to_csv(actualProductionCsvName, mode='a', header=False, index=None)
+
+# 模式5. 文件命名用(1)、(2)、(3)。。。表示，每天一个文件，每小时6行
+if actualFileMode == 5:
+    for n in range(0, 367):
+        # 组合生成文件名
+        if n == 0:
+            data2FileName = actualFileName + '.csv'
+        else:
+            data2FileName = actualFileName + ' (' + str(n) + ')' + '.csv'
+        # 判断当前名称的文件是否存在
+        if os.path.exists(data2FileName):
+            if os.path.getsize(data2FileName):
+                print('已读取' + data2FileName)
+            else:
+                print(data2FileName + '文件存在但为空')
+                continue
+        else:
+            # print(data2FileName + '文件不存在')
+            continue
+
+        # 用暂存变量dataTemp读取生成文档名指向的csv文件
+        # 备用参数 , usecols=[0, actualReadCsvColumn, actualReadColumn]
+        data2Temp = pd.read_csv(data2FileName, encoding='utf-8', header=None,
+                                delimiter=";", decimal=",", thousands='.',
+                                usecols=[0, 1, actualReadCsvColumn])
+        # 分离日期数据列
+        data2Temp = DateSplit(data2Temp, 0)
+        # 准备参数
+        data2TempList = []
+        y = ''
+        m = ''
+        d = ''
+        h = 0
+        num = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+        # 调试用的信息
+        # print('表格模板：')
+        # print(dataTempList)
+        # print('选取项：')
+        # print(dataTemp[0][3])
+        # print('所有项：')
+        # print(data2Temp)
+        # print('日期: '+' '+y + ' ' + m + ' ' + d)
+
+        for i in range(7, 145):
+            p = data2Temp[actualReadCsvColumn][i]
+            # 解决0,00的问题
+            p = p.replace(',', '.')
+            num[(i - 1) % 6] = float(p)  # 读取每小时的6个数据单元格
+            if (i - 1) % 6 == 5:
+                num[6] = num[0] + num[1] + num[2] + num[3] + num[4] + num[5]
+                num[6] = num[6] * 1000
+                num[6] = num[6] / 6  # 求它们的平均数
+                h = h + 1
+                y = data2Temp['year'][i]
+                m = data2Temp['month'][i]
+                d = data2Temp['day'][i]
+                data2TempList.append([y, m, d, h, num[6]])  # 将时间数据和每小时平均数添加进data2TempList列表
+                # print('已填写：')
+                # print([y, m, d, h, num[0], num[1], num[2], num[3], num[4], num[5], num[6]])
+
+        data2TempList.append([y, m, d, 24, 0])
+
+        # 将 列表list 转换为 DataFrame格式
+        data2TempDataFrame = pd.DataFrame(data2TempList)
+        data2TempDataFrame = data2TempDataFrame.round(decimals=2)  # 表格数据只保留两位小数
+        # print('表格雏形：')
+        # print(data2TempDataFrame)
+
+        # 将时间信息与每小时平均数一并存入csv文件：
+        data2TempDataFrame.to_csv(actualProductionCsvName, mode='a', header=False, index=None)
+
 
 # data2读取实际数据csv
 # if actualFileMode == 3:
