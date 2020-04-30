@@ -204,7 +204,6 @@ if actualFileMode == 2:
                 data2Temp = data2Temp.fillna(0)
                 # 准备参数
                 data2TempList = []
-                a = 0
                 h = 0
                 num = [0.0, 0.0, 0.0, 0.0, 0.0]
 
@@ -224,8 +223,8 @@ if actualFileMode == 2:
                         num[4] = num[0] + num[1] + num[2] + num[3]
                         num[4] = num[4] / 4  # 求它们的平均数
                         num[4] = num[4] * 1000  # 数值扩大1000倍
-                        a = a + 1
-                        data2TempList.append([y, m, d, a, num[4]])  # 将时间数据和每小时平均数添加进dataTempList列表
+                        h = h + 1
+                        data2TempList.append([y, m, d, h, num[4]])  # 将时间数据和每小时平均数添加进dataTempList列表
                 data2TempList.append([y, m, d, 24, 0])
 
                 # 将 列表list 转换为 DataFrame格式
